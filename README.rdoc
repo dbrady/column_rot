@@ -7,16 +7,16 @@ must be locked while the entire table is rewritten. If you are adding
 and dropping multiple columns on a table, each column change must be
 done separately.
 
-If we create a temporary table, however, and add or drop the column to
-it, copy the data from the original table, then swap the new table
-into place, all of the column changes can be done in a single
-operation.
+If we create a temporary table, however, and add or drop all of the
+columns to it at once, then copy the data from the original table and
+swap the new table into place, all of the column changes can be done
+in a single operation.
 
 Additionally, this method of migrating appears to be significantly
-faster for many users. Brian Moran's original post showed a speedup
-from 17 minutes to 45 seconds, a speedup of over 22x.
+faster, even for a single-column change. Brian Moran's original post
+showed a speedup from 17 minutes to 45 seconds, a speedup of over 22x.
 
-(*** GET AND POST OWN STATS HERE***)
+(*** GET AND POST OWN STATS HERE ***)
 
 This plugin was inspired by Brian Moran's blog post, found here: http://blog.onehub.com/posts/adding-columns-to-large-mysql-tables-quickly
 
@@ -47,19 +47,19 @@ data.
 
 == Simple Example
 
-with_temporary_table do
-  add_column :pants, :color_id, :integer, :null => false, :default => 1
-  add_column :pants, :size, :integer
-end
+ with_temporary_table do
+   add_column :pants, :color_id, :integer, :null => false, :default => 1
+   add_column :pants, :size, :integer
+ end
 
 == Complicated Example
 
-with_temporary_table :name => :tmp_table do
-  add_column :pants, :color_id, :integer, :null => false, :default => 1
-  add_column :pants, :size, :integer
-  remove_column :pants, :fabric
-  add_index :pants, [:color_id, :size]
-end
+ with_temporary_table :name => :tmp_table do
+   add_column :pants, :color_id, :integer, :null => false, :default => 1
+   add_column :pants, :size, :integer
+   remove_column :pants, :fabric
+   add_index :pants, [:color_id, :size]
+ end
 
 == Credits
 This plugin was inspired by Brian Moran's post
