@@ -1,0 +1,68 @@
+= Column Rot
+Rails plugin to accelerate migrations that use add_column and
+remove_column by "rotating" the data through a temporary table.
+
+In many databases, if you add or drop a column to the table, the table
+must be locked while the entire table is rewritten. If you are adding
+and dropping multiple columns on a table, each column change must be
+done separately.
+
+If we create a temporary table, however, and add or drop the column to
+it, copy the data from the original table, then swap the new table
+into place, all of the column changes can be done in a single
+operation.
+
+Additionally, this method of migrating appears to be significantly
+faster for many users. Brian Moran's original post showed a speedup
+from 17 minutes to 45 seconds, a speedup of over 22x.
+
+(*** GET AND POST OWN STATS HERE***)
+
+This plugin was inspired by Brian Moran's blog post, found here: http://blog.onehub.com/posts/adding-columns-to-large-mysql-tables-quickly
+
+
+== Known Issues
+
+* Not sure which database adapters this will support yet. My plan is
+to write it in pure SQL-92 so that MySQL and PostGreSQL at least will
+be able to use it. If not, I'm going to write it in MySQL because
+that't the database I have to fight with regularly.
+
+* Not sure yet how to handle columns defined as non-null with no
+default. If there's no data in the table yet it will work, but the
+whole POINT of this plugin is to handle tables with huge amounts of
+data.
+
+== Tests
+* Add a column
+* Drop a column
+* :name => etc
+* Forbid multiple tables
+* Forbid non-DSLable commands (create table, etc)
+* Add an index
+* Remove an index
+* Must preserve existing indexes
+* Must preserve character set and collation
+* How to handle non-null columns that have no default?
+
+== Simple Example
+
+with_temporary_table do
+  add_column :pants, :color_id, :integer, :null => false, :default => 1
+  add_column :pants, :size, :integer
+end
+
+== Complicated Example
+
+with_temporary_table :name => :tmp_table do
+  add_column :pants, :color_id, :integer, :null => false, :default => 1
+  add_column :pants, :size, :integer
+  remove_column :pants, :fabric
+  add_index :pants, [:color_id, :size]
+end
+
+== Credits
+This plugin was inspired by Brian Moran's post
+http://blog.onehub.com/posts/adding-columns-to-large-mysql-tables-quickly
+
+
