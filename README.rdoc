@@ -5,7 +5,9 @@ remove_column by "rotating" the data through a temporary table.
 In many databases, if you add or drop a column to the table, the table
 must be locked while the entire table is rewritten. If you are adding
 and dropping multiple columns on a table, each column change must be
-done separately.
+done separately. For very large tables this process takes minutes or
+even hours, a prohibitively long time for a production system to be
+down.
 
 If we create a temporary table, however, and add or drop all of the
 columns to it at once, then copy the data from the original table and
@@ -20,25 +22,19 @@ showed a speedup from 17 minutes to 45 seconds, a speedup of over 22x.
 
 This plugin was inspired by Brian Moran's blog post, found here: http://blog.onehub.com/posts/adding-columns-to-large-mysql-tables-quickly
 
+== Goals
+* Provide a nearly-transparent "context" that lets you use existing ActiveRecord::Migration DSL commands. The idea is to simply say "with_temporary_table {...}" and put your existing migration code into the block.
 
 == Known Issues
-
-* Not sure which database adapters this will support yet. My plan is
-to write it in pure SQL-92 so that MySQL and PostGreSQL at least will
-be able to use it. If not, I'm going to write it in MySQL because
-that't the database I have to fight with regularly.
-
-* Not sure yet how to handle columns defined as non-null with no
-default. If there's no data in the table yet it will work, but the
-whole POINT of this plugin is to handle tables with huge amounts of
-data.
+* Not sure which database adapters this will support yet. My plan is to write it in pure SQL-92 so that MySQL and PostGreSQL at least will be able to use it. If not, I'm going to write it in MySQL because that't the database I have to fight with regularly.
+* Not sure yet how to handle columns defined as non-null with no default. If there's no data in the table yet it will work, but the whole POINT of this plugin is to handle tables with huge amounts of data.
 
 == Tests
 * Add a column
 * Drop a column
-* :name => etc
-* Forbid multiple tables
-* Forbid non-DSLable commands (create table, etc)
+* :name => :temporary_table_name
+* Raise error on multiple tables
+* Raise error on non-DSLable commands (create table, etc)
 * Add an index
 * Remove an index
 * Must preserve existing indexes
